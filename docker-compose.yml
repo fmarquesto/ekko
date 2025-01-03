@@ -1,0 +1,34 @@
+version: '2.29.2'
+services:
+  web:
+    container_name: ekko
+    build:
+      context: ./
+      dockerfile: ci/docker/Dockerfile
+    depends_on:
+      mysql:
+        condition: service_healthy
+    volumes:
+      - ./:/app
+    ports:
+      - 8081:80
+      - 4444:443
+    environment:
+      - APP_PATH=/app
+      - DOCUMENT_ROOT=/public
+  mysql:
+    image: mysql
+    container_name: mysql-ekko
+    environment:
+      MYSQL_ROOT_PASSWORD: root
+      MYSQL_DATABASE: laravel
+      MYSQL_USER: laravel
+      MYSQL_PASSWORD: laravel
+    ports:
+      - 5433:3306
+    volumes:
+      - ./ci/docker/mysql:/var/lib/mysql
+    healthcheck:
+      test: [ "CMD", "mysqladmin" ,"ping", "-h", "localhost" ]
+      timeout: 20s
+      retries: 10
